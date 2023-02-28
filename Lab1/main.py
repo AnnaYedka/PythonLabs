@@ -1,4 +1,6 @@
 # 1
+import random
+
 print("Hello world")
 
 # 2
@@ -20,3 +22,15 @@ def math_operations(num1, num2, op):
     else:
         print("invalid operation")
         return 0
+
+# 3
+
+
+def even_numbers():
+    nums = random.sample(range(0, 300), 20)
+    print("first list:%s" %nums)
+    res = []
+    for i in nums:
+        if i % 2 == 0:
+            res.append(i)
+    return res
