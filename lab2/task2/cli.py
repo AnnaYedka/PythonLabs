@@ -20,25 +20,17 @@ class System:
             "switch": self.switch
         }
 
-    def log_in(self, username):
-        answ = input(LOAD_ASK)
-
-        self.__user = User(username)
-
-        if answ == "y":
-            try:
-                self.__user.load_data()
-            except FileNotFoundError:
-                filename = input("Specify file name:")
-                self.__user.load_data(filename)
-
     def switch(self, new_username):
         answ = input(SAVE_ASK)
 
         if answ == "y":
             self.__user.save()
-        self.__user = User(new_username)
+        self.__user = User(*new_username)
         self.update_commands()
+
+        answ = input(LOAD_ASK)
+        if answ == "y":
+            self.__user.load_data()
 
     def parse_command(self, command: str):
         command_with_args = command.split(" ", maxsplit=1)
@@ -53,7 +45,7 @@ class System:
         if cmd != "":
             if args:
                 try:
-                    self.__commands[cmd](*args)
+                    self.__commands[cmd](args)
                 except TypeError:
                     print(INVALID_ARGS)
             else:
@@ -72,3 +64,5 @@ class System:
                     self.__user.save()
                 break
             self.run_command(user_input)
+
+System().run()
