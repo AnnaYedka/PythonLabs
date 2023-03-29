@@ -1,5 +1,4 @@
 import textProcessing
-import pytest
 
 TEST_SENTENCE1 = "Hello!! How are you, Mr. Green? Welcome home..."
 TEST_SENTENCE2 = "p.m, etc."
@@ -45,7 +44,7 @@ def test_get_all_words3():
 
 
 def test_count_sentence_length1():
-    assert textProcessing.count_sentence_length(TEST_SENTENCE1) == 32/3
+    assert textProcessing.count_sentence_length(TEST_SENTENCE1) == 32 / 3
 
 
 def test_count_sentence_length2():
@@ -53,15 +52,15 @@ def test_count_sentence_length2():
 
 
 def test_count_sentence_length3():
-    assert textProcessing.count_sentence_length(TEST_SENTENCE3) == 49/2
+    assert textProcessing.count_sentence_length(TEST_SENTENCE3) == 49 / 2
 
 
 def test_count_word_length1():
-    assert textProcessing.count_word_length("hello how are you?") == 14/4
+    assert textProcessing.count_word_length("hello how are you?") == 14 / 4
 
 
 def test_count_word_length2():
-    assert textProcessing.count_word_length("he1lo how are you 123?") == 14/4
+    assert textProcessing.count_word_length("he1lo how are you 123?") == 14 / 4
 
 
 def test_count_word_length3():
