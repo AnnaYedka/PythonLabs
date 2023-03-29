@@ -1,0 +1,6 @@
+LOAD_ASK = "If you want to load a container, enter y. Else - any other character\n"
+SAVE_ASK = "If you want to save a container, enter y. Else - any other character\n"
+INVALID_CMD = "Invalid input"
+INVALID_ARGS = "Invalid argument"
+ESCAPE_CMD = "exit"
+FILE_NOT_FOUND = "There is no file to load from, try again"
