@@ -56,6 +56,8 @@ class System:
 
     def run(self):
         self.update_commands()
+        print("Commands: ")
+        print(", ".join(self.__commands.keys()) + ", exit")
         while True:
             user_input = input()
             if user_input == ESCAPE_CMD:
@@ -65,4 +67,6 @@ class System:
                 break
             self.run_command(user_input)
 
-System().run()
+
+if __name__ == "__main__":
+    System().run()
