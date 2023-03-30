@@ -34,7 +34,11 @@ def count_word_length(text):
 
 
 def get_top_k_ngrams(text, k=10, n=4):
-    words = get_all_words(text)
-    all_ngrams = [" ".join(words[i:i + n]) for i in range(len(words) - n + 1)]
-    return Counter(all_ngrams).most_common(k)
+    try:
+        words = get_all_words(text)
+        all_ngrams = [" ".join(words[i:i + int(n)]) for i in range(len(words) - int(n) + 1)]
+        return Counter(all_ngrams).most_common(int(k))
+    except TypeError:
+        print("invalid input")
+        return None
 
