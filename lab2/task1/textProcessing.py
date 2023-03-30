@@ -1,5 +1,4 @@
 import re
-from collections import Counter
 
 ABBREVIATIONS = ["etc.", "i.e.", "e.g.", "c.", "Mr.", "Mrs.", "Dr.", "Lt.", "Rep.", "p.m.", "a.m."]
 
@@ -8,8 +7,9 @@ def count_sentences(text):
     unwanted_dots_count = 0
     sentence_in_quotes = 0
     for abbreviation in ABBREVIATIONS:
-        unwanted_dots_count += text.count(abbreviation) * abbreviation.count(".")
-    quotes = re.findall(r"\"([^\"]+)\"",text)
+        tmp = abbreviation.count(".")
+        unwanted_dots_count += text.count(" " + abbreviation + " ") * abbreviation.count(".")
+    quotes = re.findall(r"\"([^\"]+)\"", text)
     for quote in quotes:
         sentence_in_quotes += count_sentences(quote)
     return len(re.findall(r"[A-z\s0-9]+(?:\.+|\?|!)", text)) - unwanted_dots_count - sentence_in_quotes
@@ -34,15 +34,24 @@ def count_sentence_length(text):
 def count_word_length(text):
     words = get_all_words(text)
     return sum(len(word) for word in words) / len(words) if len(words) != 0 else 0
-    return 0
 
 
 def get_top_k_ngrams(text, k=10, n=4):
     try:
         words = get_all_words(text)
         all_ngrams = [" ".join(words[i:i + int(n)]) for i in range(len(words) - int(n) + 1)]
-        return Counter(all_ngrams).most_common(int(k))
+        ngrams_counted = {}
+        for ngram in all_ngrams:
+            if ngram not in ngrams_counted.keys():
+                ngrams_counted.update({ngram: 1})
+            else:
+                ngrams_counted[ngram] += 1
+        ngrams_list = sorted(ngrams_counted.items(), key=lambda elem: elem[1])
+        return ngrams_list[-int(k)::]
     except TypeError:
+        print("invalid input")
+        return None
+    except ValueError:
         print("invalid input")
         return None
 
