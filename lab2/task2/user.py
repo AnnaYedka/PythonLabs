@@ -1,5 +1,8 @@
+import os.path
+
 from container import MyContainer
 from constants import FILE_NOT_FOUND
+
 
 
 class User:
@@ -34,12 +37,12 @@ class User:
         else:
             filename = filename[0]
         try:
-            with open(filename, "r") as file:
+            with open(os.path.join("users", filename), "r") as file:
                 self.__container.add(file.read().split(", "))
         except FileNotFoundError:
             print(FILE_NOT_FOUND)
 
     def save(self):
-        filename = self.__name
+        filename = os.path.join("users", self.__name)
         with open(filename, "w") as file:
             file.write(", ".join(self.__container.data_to_str()))
