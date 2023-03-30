@@ -6,9 +6,13 @@ ABBREVIATIONS = ["etc.", "i.e.", "e.g.", "c.", "Mr.", "Mrs.", "Dr.", "Lt.", "Rep
 
 def count_sentences(text):
     unwanted_dots_count = 0
+    sentence_in_quotes = 0
     for abbreviation in ABBREVIATIONS:
         unwanted_dots_count += text.count(abbreviation) * abbreviation.count(".")
-    return len(re.findall(r"[A-z\s0-9]+(?:\.+|\?|!)", text)) - unwanted_dots_count
+    quotes = re.findall(r"\"([^\"]+)\"",text)
+    for quote in quotes:
+        sentence_in_quotes += count_sentences(quote)
+    return len(re.findall(r"[A-z\s0-9]+(?:\.+|\?|!)", text)) - unwanted_dots_count - sentence_in_quotes
 
 
 def count_non_declarative(text):
