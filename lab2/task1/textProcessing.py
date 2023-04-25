@@ -46,8 +46,8 @@ def get_top_k_ngrams(text, k=10, n=4):
                 ngrams_counted.update({ngram: 1})
             else:
                 ngrams_counted[ngram] += 1
-        ngrams_list = sorted(ngrams_counted.items(), key=lambda elem: elem[1])
-        return ngrams_list[-int(k)::]
+        ngrams_list = sorted(ngrams_counted.items(), key=lambda elem: elem[1], reverse=True)
+        return ngrams_list[int(k)]
     except TypeError:
         print("invalid input")
         return None

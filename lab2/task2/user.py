@@ -33,11 +33,11 @@ class User:
 
     def load_data(self, filename=None):
         if not filename:
-            filename = self.__name
+            filename = os.path.join("users", self.__name)
         else:
             filename = filename[0]
         try:
-            with open(os.path.join("users", filename), "r") as file:
+            with open(filename, "r") as file:
                 self.__container.add(file.read().split(", "))
         except FileNotFoundError:
             print(FILE_NOT_FOUND)
