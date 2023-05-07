@@ -1,6 +1,4 @@
-import types
-
-from consts import PRIMITIVE_TYPES, ITERABLE_TYPES, NOT_SERIALIZABLE
+from lab3.consts import PRIMITIVE_TYPES, ITERABLE_TYPES, NOT_SERIALIZABLE
 from types import FunctionType, CodeType, ModuleType, MethodType, CellType
 
 
@@ -94,7 +92,7 @@ def deconvert(obj: dict):
     elif not obj:
         return {}
 
-    obj_type = obj.keys()[0]
+    obj_type = list(obj.keys())[0]
     if obj_type == "dict":
         return _deconvert_dict(obj[obj_type])
     if obj_type == "class":
@@ -157,3 +155,5 @@ def _deconvert_code(obj: dict):
                     freevars=code_dict["freevars"],
                     cellvars=code_dict["cellvars"]
                     )
+
+
