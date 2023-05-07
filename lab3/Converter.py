@@ -9,7 +9,7 @@ def convert(obj):
         return list(obj)
 
     elif type(obj) == dict:
-        return _convert_dict(obj)
+        return {"dict":_convert_dict(obj)}
     elif isinstance(obj, type):
         return _convert_class(obj)
     elif isinstance(obj, MethodType) or isinstance(obj, FunctionType):
@@ -26,7 +26,7 @@ def _convert_dict(obj: dict) -> dict:
     tmp = {}
     for key, value in obj.items():
         tmp[convert(key)] = convert(value)
-    return {"dict": tmp}
+    return tmp
 
 
 def _convert_class(obj) -> dict:
@@ -34,24 +34,28 @@ def _convert_class(obj) -> dict:
            "bases": obj.__bases__,
            "attr": {key: value for key, value in obj.__dict__.items()
                     if key not in NOT_SERIALIZABLE}}
-    return {"class": convert(tmp)}
+    return {"class": _convert_dict(tmp)}
 
 
 def _convert_instance(self, obj) -> dict:
     tmp = {"class": obj.__class__,
            "attr": {key: value for key, value in obj.__dict__.items()
                     if key not in NOT_SERIALIZABLE}}
-    return {"instance":convert(tmp)}
+    return {"instance": _convert_dict(tmp)}
 
 
 def _convert_func(obj: FunctionType) -> dict:
+    if obj.__closure__ is None:
+        closure = ()
+    else:
+        closure = tuple([cell.cell_contents for cell in obj.__closure__])
     tmp = {"code": _convert_code(obj.__code__),
            "globals": _get_globals(obj),
            "name": obj.__name__,
            "argdefs": obj.__defaults__,
-           "closure": [cell.cell_contents for cell in obj.__closure__]
+           "closure": closure
            }
-    return {"function": convert(tmp)}
+    return {"function": _convert_dict(tmp)}
 
 
 def _convert_code(obj: CodeType) -> dict:
@@ -69,11 +73,11 @@ def _convert_code(obj: CodeType) -> dict:
         "filename": obj.co_filename,
         "name": obj.co_name,
         # "firstlineno": obj.co_firstlineno,
-        "lnotab": obj.co_lnotab,
+        #"lnotab": obj.co_lnotab,
         "freevars": obj.co_freevars,
         "cellvars": obj.co_cellvars
     }
-    return convert(tmp)
+    return _convert_dict(tmp)
 
 
 def _get_globals(func: FunctionType) -> dict:
@@ -115,10 +119,14 @@ def _deconvert_dict(obj: dict):
 def _deconvert_func(obj: dict):
     func_dict = _deconvert_dict(obj)
     closure = tuple([CellType(val) for val in func_dict["closure"]])
+    if func_dict["argdefs"] is None:
+        defs = ()
+    else:
+        defs = (tuple(func_dict["argdefs"]))
     return FunctionType(code=func_dict["code"],
                         globals=func_dict["globals"],
                         name=func_dict["name"],
-                        argdefs=(tuple(func_dict["argdefs"])),
+                        argdefs=defs,
                         closure=closure
                         )
 
