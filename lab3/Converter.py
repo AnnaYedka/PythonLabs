@@ -6,7 +6,7 @@ def convert(obj):
     if type(obj) in PRIMITIVE_TYPES:
         return obj
     elif type(obj) in ITERABLE_TYPES:
-        return list(obj)
+        return _convert_iterable(obj)
 
     elif type(obj) == dict:
         return _convert_dict(obj)
@@ -21,6 +21,12 @@ def convert(obj):
     else:
         return _convert_instance(obj)
 
+
+def _convert_iterable(obj):
+    tmp = []
+    for val in obj:
+        tmp.append(convert(val))
+    return tmp
 
 def _convert_dict(obj: dict) -> dict:
     tmp = {}
@@ -37,7 +43,7 @@ def _convert_class(obj) -> dict:
     return {"class": _convert_dict(tmp)}
 
 
-def _convert_instance(self, obj) -> dict:
+def _convert_instance(obj) -> dict:
     tmp = {"class": obj.__class__,
            "attr": {key: value for key, value in obj.__dict__.items()
                     if key not in NOT_SERIALIZABLE}}
@@ -96,6 +102,9 @@ def deconvert(obj: dict):
     elif not obj:
         return {}
 
+    if type(obj) != dict:
+        return obj
+
     obj_type = list(obj.keys())[0]
     if obj_type == "class":
         return _deconvert_class(obj[obj_type])
@@ -124,12 +133,14 @@ def _deconvert_func(obj: dict):
     else:
         defs = (tuple(func_dict["argdefs"]))
 
-    return FunctionType(code=c,
+    func =  FunctionType(code=c,
                         globals=func_dict["globals"],
                         name=func_dict["name"],
                         argdefs=defs,
                         closure=closure
                         )
+    func.__globals__.update({func.__name__: func})
+    return func
 
 
 def _deconvert_class(obj: dict):
