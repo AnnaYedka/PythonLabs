@@ -9,7 +9,7 @@ def convert(obj):
         return list(obj)
 
     elif type(obj) == dict:
-        return {"dict":_convert_dict(obj)}
+        return _convert_dict(obj)
     elif isinstance(obj, type):
         return _convert_class(obj)
     elif isinstance(obj, MethodType) or isinstance(obj, FunctionType):
@@ -72,8 +72,8 @@ def _convert_code(obj: CodeType) -> dict:
         "varnames": obj.co_varnames,
         "filename": obj.co_filename,
         "name": obj.co_name,
-        # "firstlineno": obj.co_firstlineno,
-        #"lnotab": obj.co_lnotab,
+        "firstlineno": obj.co_firstlineno,
+        "lnotab": obj.co_lnotab.hex(),
         "freevars": obj.co_freevars,
         "cellvars": obj.co_cellvars
     }
@@ -97,8 +97,6 @@ def deconvert(obj: dict):
         return {}
 
     obj_type = list(obj.keys())[0]
-    if obj_type == "dict":
-        return _deconvert_dict(obj[obj_type])
     if obj_type == "class":
         return _deconvert_class(obj[obj_type])
     if obj_type == "function":
@@ -107,6 +105,7 @@ def deconvert(obj: dict):
         return _deconvert_instance(obj[obj_type])
     if obj_type == "code":
         return _deconvert_code(obj[obj_type])
+    return _deconvert_dict(obj)
 
 
 def _deconvert_dict(obj: dict):
@@ -118,12 +117,14 @@ def _deconvert_dict(obj: dict):
 
 def _deconvert_func(obj: dict):
     func_dict = _deconvert_dict(obj)
+    c = _deconvert_code(func_dict["code"])
     closure = tuple([CellType(val) for val in func_dict["closure"]])
     if func_dict["argdefs"] is None:
         defs = ()
     else:
         defs = (tuple(func_dict["argdefs"]))
-    return FunctionType(code=func_dict["code"],
+
+    return FunctionType(code=c,
                         globals=func_dict["globals"],
                         name=func_dict["name"],
                         argdefs=defs,
@@ -147,21 +148,22 @@ def _deconvert_instance(obj: dict):
 
 def _deconvert_code(obj: dict):
     code_dict = _deconvert_dict(obj)
-    return CodeType(argcount=code_dict["argcount"],
-                    posonlyargcount=code_dict["posonlyargcount"],
-                    kwonlyargcount=code_dict["kwonlyargcount"],
-                    nlocals=code_dict["nlocals"],
-                    stacksize=code_dict["stacksize"],
-                    flags=code_dict["flags"],
-                    codestring=code_dict["codestring"], # bytes.fromhex( val) ?
-                    constants=code_dict["constants"],
-                    names=code_dict["names"],
-                    varnames=code_dict["varnames"],
-                    filename=code_dict["filename"],
-                    name=code_dict["name"],
-                    lnotab=code_dict["lnotab"],
-                    freevars=code_dict["freevars"],
-                    cellvars=code_dict["cellvars"]
-                    )
+    return CodeType(code_dict["argcount"],
+                    code_dict["posonlyargcount"],
+                    code_dict["kwonlyargcount"],
+                    code_dict["nlocals"],
+                    code_dict["stacksize"],
+                    code_dict["flags"],
+                    bytes.fromhex(code_dict["codestring"]),
+                    tuple(code_dict["constants"]),
+                    tuple(code_dict["names"]),
+                    tuple(code_dict["varnames"]),
+                    code_dict["filename"],
+                    code_dict["name"],
+                    code_dict["firstlineno"],
+                    bytes.fromhex(code_dict["lnotab"]),
+                    tuple(code_dict["freevars"]),
+                    tuple(code_dict["cellvars"]))
+
 
 
