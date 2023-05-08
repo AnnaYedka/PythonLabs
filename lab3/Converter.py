@@ -36,8 +36,13 @@ def _convert_dict(obj: dict) -> dict:
 
 
 def _convert_class(obj) -> dict:
+    if obj.__bases__[0] == object:
+        bases = ()
+    else:
+        bases = obj.__bases__
+
     tmp = {"name": obj.__name__,
-           "bases": obj.__bases__,
+           "bases": bases,
            "attr": {key: value for key, value in obj.__dict__.items()
                     if key not in NOT_SERIALIZABLE}}
     return {"class": _convert_dict(tmp)}
@@ -145,7 +150,11 @@ def _deconvert_func(obj: dict):
 
 def _deconvert_class(obj: dict):
     class_dict = _deconvert_dict(obj)
-    return type(class_dict["name"], (class_dict["bases"]), class_dict["attr"])
+    if class_dict["bases"]:
+        bases = tuple(class_dict["bases"])
+    else:
+        bases = (object,)
+    return type(class_dict["name"], bases, class_dict["attr"])
 
 
 def _deconvert_instance(obj: dict):
