@@ -1,6 +1,7 @@
-from lab3.consts import PRIMITIVE_TYPES, ITERABLE_TYPES, NOT_SERIALIZABLE
-from types import FunctionType, CodeType, ModuleType, MethodType, CellType
+import builtins
 
+from lab3.consts import PRIMITIVE_TYPES, ITERABLE_TYPES, NOT_SERIALIZABLE
+from types import FunctionType, CodeType, ModuleType, MethodType, CellType, BuiltinMethodType, BuiltinFunctionType
 
 def convert(obj):
     if type(obj) in PRIMITIVE_TYPES:
@@ -12,8 +13,10 @@ def convert(obj):
         return _convert_dict(obj)
     elif isinstance(obj, type):
         return _convert_class(obj)
-    elif isinstance(obj, MethodType) or isinstance(obj, FunctionType):
+    elif isinstance(obj, (MethodType, FunctionType)):
         return _convert_func(obj)
+    elif isinstance(obj, (BuiltinFunctionType, BuiltinMethodType)):
+        return {}
     elif isinstance(obj, CodeType):
         return {"code": _convert_code(obj)}
     elif isinstance(obj, ModuleType):
@@ -131,15 +134,21 @@ def _deconvert_dict(obj: dict):
 
 def _deconvert_func(obj: dict):
     func_dict = _deconvert_dict(obj)
-    c = _deconvert_code(func_dict["code"])
+    c:CodeType = _deconvert_code(func_dict["code"])
     closure = tuple([CellType(val) for val in func_dict["closure"]])
     if func_dict["argdefs"] is None:
         defs = ()
     else:
         defs = (tuple(func_dict["argdefs"]))
 
+    # add built-in functions to globals
+    globals = func_dict["globals"]
+    for val in c.co_names:
+        if val in builtins.__dict__.keys():
+            globals.update({val: builtins.__dict__[val]})
+
     func =  FunctionType(code=c,
-                        globals=func_dict["globals"],
+                        globals=globals,
                         name=func_dict["name"],
                         argdefs=defs,
                         closure=closure
