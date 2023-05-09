@@ -17,6 +17,10 @@ def convert(obj):
         return _convert_func(obj)
     elif isinstance(obj, (BuiltinFunctionType, BuiltinMethodType)):
         return {}
+    elif isinstance(obj, classmethod):
+        return {"classmethod": _convert_func(obj.__func__)}
+    elif isinstance(obj, staticmethod):
+        return {"staticmethod": _convert_func(obj.__func__)}
     elif isinstance(obj, CodeType):
         return {"code": _convert_code(obj)}
     elif isinstance(obj, ModuleType):
@@ -122,6 +126,10 @@ def deconvert(obj: dict):
         return _deconvert_instance(obj[obj_type])
     if obj_type == "code":
         return _deconvert_code(obj[obj_type])
+    if obj_type == "staticmethod":
+        return staticmethod(deconvert(obj[obj_type]))
+    if obj_type == "classmethod":
+        return classmethod(deconvert(obj[obj_type]))
     return _deconvert_dict(obj)
 
 
