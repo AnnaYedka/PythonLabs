@@ -1,4 +1,5 @@
 import builtins
+import collections.abc
 
 from lab3.consts import PRIMITIVE_TYPES, ITERABLE_TYPES, NOT_SERIALIZABLE
 from types import FunctionType, CodeType, ModuleType, MethodType, CellType, BuiltinMethodType, BuiltinFunctionType
@@ -25,6 +26,8 @@ def convert(obj):
         return {"code": _convert_code(obj)}
     elif isinstance(obj, ModuleType):
         return {"module": obj.__name__}
+    elif isinstance(obj, collections.abc.Iterator):
+        return {"iterator": _convert_iterable(list(obj))}
     else:
         return _convert_instance(obj)
 
@@ -132,6 +135,8 @@ def deconvert(obj: dict):
         return classmethod(deconvert(obj[obj_type]))
     if obj_type == "module":
         return __import__(obj[obj_type])
+    if obj_type == "iterator":
+        return iter(deconvert(obj[obj_type]))
     return _deconvert_dict(obj)
 
 
