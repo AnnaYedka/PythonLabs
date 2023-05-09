@@ -24,7 +24,7 @@ def convert(obj):
     elif isinstance(obj, CodeType):
         return {"code": _convert_code(obj)}
     elif isinstance(obj, ModuleType):
-        return {}
+        return {"module": obj.__name__}
     else:
         return _convert_instance(obj)
 
@@ -130,6 +130,8 @@ def deconvert(obj: dict):
         return staticmethod(deconvert(obj[obj_type]))
     if obj_type == "classmethod":
         return classmethod(deconvert(obj[obj_type]))
+    if obj_type == "module":
+        return __import__(obj[obj_type])
     return _deconvert_dict(obj)
 
 
