@@ -2,20 +2,23 @@ import re
 
 from serializer import Serializer
 from consts import JSON_STYLE_VALUES
+from Converter import convert, deconvert
 
 
 class JSONSerializer(Serializer):
     def dump(self, obj, fp):
-        pass
+        with open(fp, "w") as file:
+            file.write(self.dumps(obj))
 
     def dumps(self, obj) -> str:
-        return self._serialize(obj)
+        return self._serialize(convert(obj))
 
     def load(self, fp):
-        pass
+        with open(fp, "r") as file:
+            return self.loads(file.read())
 
     def loads(self, s: str):
-        pass
+        return deconvert(self._deserialize(s))
 
     def _serialize(self, obj, indent=0) -> str:
         if type(obj) == dict:
