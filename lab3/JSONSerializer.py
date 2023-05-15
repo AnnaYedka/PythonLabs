@@ -48,16 +48,13 @@ class JSONSerializer(Serializer):
         return self._deserialize_line(lines)
 
     def _deserialize_line(self, lines):
-        it = 0
-        if lines[it] == "{":
-            it = 1
+        j = 0
+        if lines[j] == "{":
+            j = 1
         tmp = {}
 
-        for j in range(it, len(lines)):
+        while j < len(lines):
             line = lines[j]
-
-            if j < it:
-                continue
 
             if re.search(r"\s*(.+): (.+)", line):
                 match = re.search(r"\s*(.+): (.+)", line)
@@ -72,7 +69,7 @@ class JSONSerializer(Serializer):
                         close_count += lines[i].count("}")
                         if close_count > open_count:
                             val = self._deserialize_line(lines[j:i+1])
-                            it = i+1
+                            j = i+1
                             break
                     tmp.update({self._deserialize_line([key]): val})
                 else:
@@ -84,11 +81,11 @@ class JSONSerializer(Serializer):
             elif "[" in line:
                 open_count = 0
                 close_count = 0
-                for i in range(it, len(lines)):
+                for i in range(j, len(lines)):
                     open_count += lines[i].count("[")
                     close_count += lines[i].count("]")
                     if close_count == open_count:
-                        return self._deserialize_list("".join(lines[it:i+1]))
+                        return self._deserialize_list("".join(lines[j:i+1]))
             else:
                 return self._deserialize_primitive(line)
 
