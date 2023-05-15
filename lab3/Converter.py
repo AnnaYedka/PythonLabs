@@ -36,7 +36,7 @@ def _convert_iterable(obj):
     tmp = []
     for val in obj:
         tmp.append(convert(val))
-    return tmp
+    return tuple(tmp)
 
 def _convert_dict(obj: dict) -> dict:
     tmp = {}
