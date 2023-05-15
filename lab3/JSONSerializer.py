@@ -59,8 +59,8 @@ class JSONSerializer(Serializer):
             if j < it:
                 continue
 
-            if re.search(r"(.+): (.+),?", line):
-                match = re.search(r"(.+): (.+),?", line)
+            if re.search(r"\s*(.+): (.+)", line):
+                match = re.search(r"\s*(.+): (.+)", line)
                 key = match.group(1)
                 val = match.group(2)
                 j += 1
@@ -71,7 +71,7 @@ class JSONSerializer(Serializer):
                         open_count += lines[i].count("{")
                         close_count += lines[i].count("}")
                         if close_count > open_count:
-                            val = self._deserialize_line(lines[it+1:i+1])
+                            val = self._deserialize_line(lines[j:i+1])
                             it = i+1
                             break
                     tmp.update({self._deserialize_line([key]): val})
@@ -84,21 +84,24 @@ class JSONSerializer(Serializer):
             elif "[" in line:
                 open_count = 0
                 close_count = 0
-                it += 1
                 for i in range(it, len(lines)):
                     open_count += lines[i].count("[")
                     close_count += lines[i].count("]")
-                    if close_count > open_count:
-                        it = i
-                        return self._deserialize_list(lines[it - 1:i])
+                    if close_count == open_count:
+                        return self._deserialize_list("".join(lines[it:i+1]))
             else:
                 return self._deserialize_primitive(line)
 
     def _deserialize_list(self, s: str):
-        values = s[1:-1].split(", ")
+        if s[-1] == ",":
+            values = s[1:-2].split(", ")
+        else:
+            values = s[1:-1].split(", ")
+
         l = []
         for val in values:
-            l.append(self._deserialize_line([val]))
+            if val:
+                l.append(self._deserialize_line([val]))
         return tuple(l)
 
     def _deserialize_primitive(self, s: str):
