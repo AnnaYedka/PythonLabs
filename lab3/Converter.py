@@ -112,7 +112,8 @@ def _get_globals(func: FunctionType) -> dict:
 def deconvert(obj: dict):
     if type(obj) in PRIMITIVE_TYPES:
         return obj
-    elif type(obj) == list:
+    elif type(obj) == tuple:
+        obj = list(obj)
         return [deconvert(val) for val in obj]
     elif not obj:
         return {}
