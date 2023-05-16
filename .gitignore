@@ -5,3 +5,5 @@ Lab1/Dockerfile
 lab2/task2/__pycache__/
 lab2/task1/__pycache__/
 lab2/__pycache__/
+lab3/tests/__pycache__/
+lab3/__pycache__/
