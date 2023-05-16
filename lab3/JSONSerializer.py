@@ -1,8 +1,8 @@
 import re
 
-from serializer import Serializer
-from consts import JSON_STYLE_VALUES
-from Converter import convert, deconvert
+from lab3.serializer import Serializer
+from lab3.consts import JSON_STYLE_VALUES
+from lab3.Converter import convert, deconvert
 
 
 class JSONSerializer(Serializer):
@@ -26,22 +26,22 @@ class JSONSerializer(Serializer):
                 return "{}"
             tmp = "{"
             for key in list(obj)[:-1]:
-                tmp += "\n" + "    " * indent + self._serialize(key) + ": " + self._serialize(obj[key],
+                tmp += "\n" + "    " * indent + self._serialize(key, indent+1) + ": " + self._serialize(obj[key],
                                                                                               indent + 1) + ","
-            return tmp + "\n" + "    " * indent + self._serialize(list(obj)[-1]) + ": " + \
+            return tmp + "\n" + "    " * indent + self._serialize(list(obj)[-1], indent+1) + ": " + \
                    self._serialize(obj[list(obj)[-1]], indent + 1) + "\n" + "    " * indent + "}"
 
         if type(obj) == str:
             return f'"{obj}"'
         if type(obj) in (int, float, complex):
             return str(obj)
-        if type(obj) == list:
+        if type(obj) == tuple:
             if not obj:
                 return "[]"
             tmp = "["
             for item in obj[:-1]:
-                tmp += self._serialize(item) + ", "
-            return tmp + self._serialize(obj[-1]) + "]"
+                tmp += self._serialize(item, indent+1) + ", "
+            return tmp + self._serialize(obj[-1], indent+1) + "]"
 
         if obj in JSON_STYLE_VALUES.keys():
             return JSON_STYLE_VALUES[obj]
@@ -82,12 +82,13 @@ class JSONSerializer(Serializer):
                 return tmp
 
             elif "[" in line:
+                j += 1
                 open_count = 0
                 close_count = 0
                 for i in range(j, len(lines)):
                     open_count += lines[i].count("[")
                     close_count += lines[i].count("]")
-                    if close_count == open_count:
+                    if close_count > open_count:
                         return self._deserialize_list("".join(lines[j:i+1]))
             else:
                 return self._deserialize_primitive(line)
