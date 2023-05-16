@@ -1,9 +1,14 @@
 import math
 
-from lab3.Converter import convert, deconvert
+#from lab3.Converter import convert, deconvert
+
+from lab3.JSONSerializer import JSONSerializer
+ser = JSONSerializer()
+convert = ser.dumps
+deconvert = ser.loads
 
 def simple_func(name):
-    return "hello, " + name
+    return "hello " + name
 
 def test_simple():
     assert deconvert(convert(simple_func))("anna") == simple_func("anna")

@@ -1,5 +1,9 @@
-from lab3.Converter import convert, deconvert
+#from lab3.Converter import convert, deconvert
 
+from lab3.JSONSerializer import JSONSerializer
+ser = JSONSerializer()
+convert = ser.dumps
+deconvert = ser.loads
 
 class A:
     var1 = "class var"
