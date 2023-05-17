@@ -72,9 +72,17 @@ class XMLSerializer(Serializer):
                     vals[-2].append(self._deserialize_primitive(vals[-1]))
                     vals.pop()
                 else:
-                    vals[-2].update({self._deserialize_primitive(keys[-1][1:-1]): self._deserialize_primitive(vals[-1])})
-                    vals.pop()
-                    keys.pop()
+                    if type(vals[-1]) == str:
+                        vals[-2].update({self._deserialize_primitive(keys[-1][1:-1]): self._deserialize_primitive(vals[-1])})
+                        vals.pop()
+                        keys.pop()
+                    else:
+                        tmp_dict = {}
+                        while vals[-1]:
+                            tmp_dict.update(vals[-1])
+                            vals.pop()
+                        vals[-1].update({self._deserialize_primitive(keys[-1][1:-1]): tmp_dict})
+                        keys.pop()
                 has_value = False
             else:
                 tmp += s[i]
