@@ -52,14 +52,14 @@ class XMLSerializer(Serializer):
         while i < len(s):
             if s[i] == "<":
                 if has_value:
-                    vals.append(self._deserialize_primitive(tmp))
+                    vals.append(tmp)
                 tmp += s[i]
             elif s[i] == ">":
                 tmp += s[i]
                 keys.append(tmp)
                 if tmp == "<list>":
                     vals.append([])
-                else:
+                elif tmp != "<item>":
                     vals.append({})
                 tmp = ""
                 if i != len(s) and s[i+1] != "<":
@@ -69,11 +69,16 @@ class XMLSerializer(Serializer):
                 while s[i] != ">":
                     i += 1
                 if keys[-1] == "<item>":
-                    vals[-2].append(self._deserialize_primitive(vals[-1]))
+                    vals[-2].append(self._deserialize_obj(vals[-1]))
                     vals.pop()
+                    keys.pop()
                 else:
-                    if type(vals[-1]) == str:
-                        vals[-2].update({self._deserialize_primitive(keys[-1][1:-1]): self._deserialize_primitive(vals[-1])})
+                    if len(vals) == 1:
+                        if type(vals[0]) == list:
+                            return tuple(vals[0])
+                        return vals[0]
+                    elif type(vals[-1]) == str or type[vals[-1]] == list:
+                        vals[-2].update({self._deserialize_obj(keys[-1][1:-1]): self._deserialize_obj(vals[-1])})
                         vals.pop()
                         keys.pop()
                     else:
@@ -81,24 +86,25 @@ class XMLSerializer(Serializer):
                         while vals[-1]:
                             tmp_dict.update(vals[-1])
                             vals.pop()
-                        vals[-1].update({self._deserialize_primitive(keys[-1][1:-1]): tmp_dict})
+                        vals[-1].update({self._deserialize_obj(keys[-1][1:-1]): tmp_dict})
                         keys.pop()
                 has_value = False
             else:
                 tmp += s[i]
             i+=1
         res = {}
-        if len(s) < 6 or (len(s) > 5 and s[:6] != "<list>"):
-            for d in vals:
-                res.update(d)
-        else:
-            res = vals[0]
+        for d in vals:
+            res.update(d)
         return res
 
+    def _deserialize_obj(self, obj):
+        if type(obj) == list:
+            return tuple(obj)
+        if type(obj) != str:
+            return obj
+        return self._deserialize_primitive(obj)
 
     def _deserialize_primitive(self, s: str):
-        if type(s) != str:
-            return s
         if s == "None":
             return None
         if s == "True":
