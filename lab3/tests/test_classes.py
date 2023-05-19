@@ -1,14 +1,15 @@
-#from lab3.Converter import convert, deconvert
+from lab3.Converter import convert, deconvert
+
 
 # from lab3.JSONSerializer import JSONSerializer
 # ser = JSONSerializer()
 # convert = ser.dumps
 # deconvert = ser.loads
 
-from lab3.XMLSerializer import XMLSerializer
-ser = XMLSerializer()
-convert = ser.dumps
-deconvert = ser.loads
+# from lab3.XMLSerializer import XMLSerializer
+# ser = XMLSerializer()
+# convert = ser.dumps
+# deconvert = ser.loads
 class A:
     var1 = "class var"
 
@@ -80,7 +81,8 @@ def test_inheritance_class():
 def test_inheritance_static():
     assert rebuild_C.get_number() == C.get_number()
 
-def test_inheritance_class():
+
+def test_inheritance_class1():
     assert rebuild_C.var1 == C.var1
 
 
@@ -103,3 +105,16 @@ def test_override2():
 def test_init():
     var = rebuild_C(7, 8, 15)
     assert var.sum() == c.sum()
+
+
+class ClassWithProperty:
+    a = 1
+
+    @property
+    def test_prop(self):
+        return self.a
+
+
+def test_property():
+    rebuild = deconvert(convert(ClassWithProperty()))
+    assert rebuild.test_prop == ClassWithProperty().test_prop

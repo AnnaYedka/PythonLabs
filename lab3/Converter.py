@@ -1,8 +1,10 @@
 import builtins
 import collections.abc
+import inspect
 
-from lab3.consts import PRIMITIVE_TYPES, ITERABLE_TYPES, NOT_SERIALIZABLE
+from lab3.consts import PRIMITIVE_TYPES, ITERABLE_TYPES, NOT_SERIALIZABLE, NOT_SERIALIZABLE_TYPES
 from types import FunctionType, CodeType, ModuleType, MethodType, CellType, BuiltinMethodType, BuiltinFunctionType
+
 
 def convert(obj):
     if type(obj) in PRIMITIVE_TYPES:
@@ -38,6 +40,7 @@ def _convert_iterable(obj):
         tmp.append(convert(val))
     return tuple(tmp)
 
+
 def _convert_dict(obj: dict) -> dict:
     tmp = {}
     for key, value in obj.items():
@@ -54,14 +57,19 @@ def _convert_class(obj) -> dict:
     tmp = {"name": obj.__name__,
            "bases": bases,
            "attr": {key: value for key, value in obj.__dict__.items()
-                    if key not in NOT_SERIALIZABLE}}
+                    if key not in NOT_SERIALIZABLE and type(value) not in NOT_SERIALIZABLE_TYPES}}
     return {"class": _convert_dict(tmp)}
 
 
 def _convert_instance(obj) -> dict:
+    try:
+        attr = {key: value for key, value in obj.__dict__.items()
+                if key not in NOT_SERIALIZABLE}
+    except AttributeError:
+        attr = {key: value for key, value in inspect.getmembers(obj)
+                if key not in NOT_SERIALIZABLE and not key.startswith("__") and type(value) not in NOT_SERIALIZABLE_TYPES}
     tmp = {"class": obj.__class__,
-           "attr": {key: value for key, value in obj.__dict__.items()
-                    if key not in NOT_SERIALIZABLE}}
+           "attr": attr}
     return {"instance": _convert_dict(tmp)}
 
 
@@ -150,7 +158,7 @@ def _deconvert_dict(obj: dict):
 
 def _deconvert_func(obj: dict):
     func_dict = _deconvert_dict(obj)
-    c:CodeType = _deconvert_code(func_dict["code"])
+    c: CodeType = _deconvert_code(func_dict["code"])
     closure = tuple([CellType(val) for val in func_dict["closure"]])
     if func_dict["argdefs"] is None:
         defs = ()
@@ -163,7 +171,7 @@ def _deconvert_func(obj: dict):
         if val in builtins.__dict__.keys():
             globals.update({val: builtins.__dict__[val]})
 
-    func =  FunctionType(code=c,
+    func = FunctionType(code=c,
                         globals=globals,
                         name=func_dict["name"],
                         argdefs=defs,
@@ -185,10 +193,11 @@ def _deconvert_class(obj: dict):
 def _deconvert_instance(obj: dict):
     instance_dict = _deconvert_dict(obj)
     instance_class = instance_dict["class"]
+    if instance_class.__name__ == 'property':
+        return property(instance_dict['attr']["fget"], instance_dict['attr']["fset"], instance_dict['attr']["fdel"])
     instance = object.__new__(instance_class)
     instance.__dict__ = instance_dict["attr"]
     return instance
-
 
 
 def _deconvert_code(obj: dict):
@@ -209,6 +218,3 @@ def _deconvert_code(obj: dict):
                     bytes.fromhex(code_dict["lnotab"]),
                     tuple(code_dict["freevars"]),
                     tuple(code_dict["cellvars"]))
-
-
-
