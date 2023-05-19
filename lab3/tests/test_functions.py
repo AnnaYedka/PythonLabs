@@ -2,8 +2,13 @@ import math
 
 #from lab3.Converter import convert, deconvert
 
-from lab3.JSONSerializer import JSONSerializer
-ser = JSONSerializer()
+# from lab3.JSONSerializer import JSONSerializer
+# ser = JSONSerializer()
+# convert = ser.dumps
+# deconvert = ser.loads
+
+from lab3.XMLSerializer import XMLSerializer
+ser = XMLSerializer()
 convert = ser.dumps
 deconvert = ser.loads
 
