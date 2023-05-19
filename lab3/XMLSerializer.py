@@ -1,7 +1,9 @@
-from serializer import Serializer
-from consts import PRIMITIVE_TYPES, ITERABLE_TYPES
-from Converter import convert, deconvert
+from lab3.serializer import Serializer
+from lab3.consts import PRIMITIVE_TYPES, ITERABLE_TYPES
+from lab3.Converter import convert, deconvert
 import re
+
+
 class XMLSerializer(Serializer):
     def dump(self, obj, fp):
         with open(fp, "w") as file:
@@ -15,106 +17,119 @@ class XMLSerializer(Serializer):
             return self.loads(file.read())
 
     def loads(self, s: str):
-        pass
+        s = s.replace("\n", "")
+        s = s.replace("    ", "")
+        return (self._deserialize(s)[0])
 
     def _serialize(self, obj, indent=0) -> str:
         t = type(obj)
+        if t == str:
+            return f'"{obj}"'
         if t in PRIMITIVE_TYPES:
             return str(obj)
         if t in ITERABLE_TYPES:
-            tmp = "\n"+"    "*indent + "<list>"
+            tmp = "\n" + "    " * indent + "<list>"
             for val in obj:
                 if type(val) in PRIMITIVE_TYPES:
-                    tmp += "\n"+"    "*(indent+1) + "<item>" + self._serialize(val, indent+2) + "</item>"
+                    tmp += "\n" + "    " * (indent + 1) + "<item>" + self._serialize(val, indent + 2) + "</item>"
                 else:
                     tmp += "\n" + "    " * (indent + 1) + "<item>" + self._serialize(val, indent + 2) + \
-                           "    " *(indent + 1) +"</item>"
-            tmp += "\n"+"    "*indent + "</list>" + "\n"
+                           "    " * (indent + 1) + "</item>"
+            tmp += "\n" + "    " * indent + "</list>" + "\n"
             return tmp
 
         tmp = "\n"
         for k, v in obj.items():
             if type(v) in PRIMITIVE_TYPES:
-                tmp += "    " * indent + f"<{self._serialize(k, indent + 1)}>{self._serialize(v, indent + 1)}" +\
-                        f"</{self._serialize(k, indent + 1)}>" + "\n"
+                tmp += "    " * indent + f"<{self._serialize(k, indent + 1)}>{self._serialize(v, indent + 1)}" + \
+                       f"</{self._serialize(k, indent + 1)}>" + "\n"
             else:
-                tmp += "    "*indent + f"<{self._serialize(k, indent+1)}>{self._serialize(v, indent+1)}" +\
-                   "    "*indent + f"</{self._serialize(k, indent+1)}>" + "\n"
+                tmp += "    " * indent + f"<{self._serialize(k, indent + 1)}>{self._serialize(v, indent + 1)}" + \
+                       "    " * indent + f"</{self._serialize(k, indent + 1)}>" + "\n"
         return tmp
 
+    def _deserialize(self, s: str, i: int = 0):
+        if s == "":
+            return {}
+        if s[i] != "<":
+            return self._deserialize_primitive(s, i)
+        elif len(s) - i > 5 and s[i:i + 6] == "<list>":
+            return self._deserialize_list(s, i)
+        else:
+            return self._deserialize_dict(s, i)
 
-    def _deserialize(self, s:str):
-        keys = []
-        vals = []
-        i = 0
-        tmp = ""
-        has_value = False
-        while i < len(s):
+    def _deserialize_dict(self, s: str, i: int):
+        tmp = {}
+        while i < len(s) and s[i + 1] != "/":
+            length = i
+            key, i = self._get_key(s, i)
+            length = i - length
+            val, i = self._deserialize(s, i)
+            i += length + 1
+            tmp.update({key: val})
+        return tmp, i
+
+    def _deserialize_list(self, s: str, i=0):
+        open_brackets = 1
+        i += 6
+        end = i
+        tmp = []
+        while open_brackets:
+            if s[end:end + 7] == "</list>":
+                open_brackets -= 1
+                end += 6
+            elif s[end:end + 6] == "<list>":
+                open_brackets += 1
+                end += 5
+            end += 1
+        while i < end - 7:
+            val, i = self._deserialize_list_item(s, i)
+            tmp.append(val)
+        return tuple(tmp), end
+
+    def _deserialize_list_item(self, s: str, i: int):
+        open_brackets = 1
+        i += 6
+        start = i
+        while open_brackets:
+            if s[i:i + 7] == "</item>":
+                open_brackets -= 1
+                i += 6
+            elif s[i:i + 6] == "<item>":
+                open_brackets += 1
+                i += 6
+            i += 1
+        return self._deserialize(s, start)[0], i
+
+    def _get_key(self, s: str, i: int):
+        open_brackets = 1
+        i += 1
+        start = i
+        while i < len(s) and open_brackets:
             if s[i] == "<":
-                if has_value:
-                    vals.append(tmp)
-                tmp += s[i]
+                open_brackets += 1
             elif s[i] == ">":
-                tmp += s[i]
-                keys.append(tmp)
-                if tmp == "<list>":
-                    vals.append([])
-                elif tmp != "<item>":
-                    vals.append({})
-                tmp = ""
-                if i != len(s) and s[i+1] != "<":
-                    has_value = True
-            elif s[i] == "/":
-                tmp = ""
-                while s[i] != ">":
-                    i += 1
-                if keys[-1] == "<item>":
-                    vals[-2].append(self._deserialize_obj(vals[-1]))
-                    vals.pop()
-                    keys.pop()
-                else:
-                    if len(vals) == 1:
-                        if type(vals[0]) == list:
-                            return tuple(vals[0])
-                        return vals[0]
-                    elif type(vals[-1]) == str or type[vals[-1]] == list:
-                        vals[-2].update({self._deserialize_obj(keys[-1][1:-1]): self._deserialize_obj(vals[-1])})
-                        vals.pop()
-                        keys.pop()
-                    else:
-                        tmp_dict = {}
-                        while vals[-1]:
-                            tmp_dict.update(vals[-1])
-                            vals.pop()
-                        vals[-1].update({self._deserialize_obj(keys[-1][1:-1]): tmp_dict})
-                        keys.pop()
-                has_value = False
-            else:
-                tmp += s[i]
-            i+=1
-        res = {}
-        for d in vals:
-            res.update(d)
-        return res
+                open_brackets -= 1
+            i += 1
+        return self._deserialize(s, start)[0], i
 
-    def _deserialize_obj(self, obj):
-        if type(obj) == list:
-            return tuple(obj)
-        if type(obj) != str:
-            return obj
-        return self._deserialize_primitive(obj)
-
-    def _deserialize_primitive(self, s: str):
-        if s == "None":
-            return None
-        if s == "True":
-            return True
-        if s == "False":
-            return False
-        if re.search(r"-?[0-9]+\.[0-9]+", s):
-            return float(re.search(r"-?[0-9]+\.[0-9]+", s).group())
-        if re.search(r"\(-?[0-9]+(\+|-)[0-9]+j\)", s):
-            return complex(re.search(r"\(-?[0-9]+(\+|-)[0-9]+j\)", s).group())
-        if re.search(r"-?[0-9]+", s):
-            return int(re.search(r"[0-9]+", s).group())
-        return s
+    def _deserialize_primitive(self, s: str, i):
+        start = i
+        while i < len(s) and s[i] != "<" and s[i] != ">":
+            i += 1
+        val = s[start:i]
+        if val == "None":
+            return None, i
+        if val == "True":
+            return True, i
+        if val == "False":
+            return False, i
+        if re.search(r"\"(.*)\"", val):
+            return re.search(r"\"(.*)\"", val).group(1), i
+        if re.search(r"-?[0-9]+\.[0-9]+", val):
+            return float(re.search(r"-?[0-9]+\.[0-9]+", val).group()), i
+        if re.search(r"\(-?[0-9]+(\+|-)[0-9]+j\)", val):
+            return complex(re.search(r"\(-?[0-9]+(\+|-)[0-9]+j\)", val).group()), i
+        if re.search(r"-?[0-9]+", val):
+            return int(re.search(r"[0-9]+", val).group()), i
+        return val, i
