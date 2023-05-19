@@ -19,7 +19,7 @@ class XMLSerializer(Serializer):
     def loads(self, s: str):
         s = s.replace("\n", "")
         s = s.replace("    ", "")
-        return (self._deserialize(s)[0])
+        return deconvert(self._deserialize(s)[0])
 
     def _serialize(self, obj, indent=0) -> str:
         t = type(obj)
@@ -69,7 +69,7 @@ class XMLSerializer(Serializer):
             tmp.update({key: val})
         return tmp, i
 
-    def _deserialize_list(self, s: str, i=0):
+    def _deserialize_list(self, s: str, i: int):
         open_brackets = 1
         i += 6
         end = i
@@ -113,8 +113,13 @@ class XMLSerializer(Serializer):
             i += 1
         return self._deserialize(s, start)[0], i
 
-    def _deserialize_primitive(self, s: str, i):
+    def _deserialize_primitive(self, s: str, i: int):
         start = i
+        if s[i] == "\"":
+            i += 1
+            while s[i] != "\"":
+                i += 1
+            return s[start+1:i], i + 1
         while i < len(s) and s[i] != "<" and s[i] != ">":
             i += 1
         val = s[start:i]
@@ -124,8 +129,6 @@ class XMLSerializer(Serializer):
             return True, i
         if val == "False":
             return False, i
-        if re.search(r"\"(.*)\"", val):
-            return re.search(r"\"(.*)\"", val).group(1), i
         if re.search(r"-?[0-9]+\.[0-9]+", val):
             return float(re.search(r"-?[0-9]+\.[0-9]+", val).group()), i
         if re.search(r"\(-?[0-9]+(\+|-)[0-9]+j\)", val):
