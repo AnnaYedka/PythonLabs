@@ -113,7 +113,8 @@ def deconvert(obj: dict):
     if type(obj) in PRIMITIVE_TYPES:
         return obj
     elif type(obj) == tuple:
-        return obj
+        obj = list(obj)
+        return tuple([deconvert(val) for val in obj])
     elif not obj:
         return {}
 
