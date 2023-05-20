@@ -1,11 +1,10 @@
 import re
 
-from lab3.serializer import Serializer
 from lab3.consts import JSON_STYLE_VALUES
 from lab3.Converter import convert, deconvert
 
 
-class JSONSerializer(Serializer):
+class JSONSerializer():
     def dump(self, obj, fp):
         with open(fp, "w") as file:
             file.write(self.dumps(obj))
