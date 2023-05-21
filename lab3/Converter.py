@@ -51,6 +51,8 @@ def _convert_dict(obj: dict) -> dict:
 def _convert_class(obj) -> dict:
     if obj.__bases__[0] == object:
         bases = ()
+    elif obj.__bases__[0] == type:
+        bases = ('type',)
     else:
         bases = obj.__bases__
 
@@ -77,12 +79,18 @@ def _convert_func(obj: FunctionType) -> dict:
     if obj.__closure__ is None:
         closure = ()
     else:
-        closure = tuple([cell.cell_contents for cell in obj.__closure__])
+        clas = obj.__qualname__.split("<locals>.")[-1].rsplit(".", 1)[0]
+        closure = []
+        for cell in obj.__closure__:
+            if cell.cell_contents.__name__ == clas:
+                closure.append(None)
+            else:
+                closure.append(cell.cell_contents)
     tmp = {"code": _convert_code(obj.__code__),
            "globals": _get_globals(obj),
            "name": obj.__name__,
            "argdefs": obj.__defaults__,
-           "closure": closure
+           "closure": tuple(closure)
            }
     return {"function": _convert_dict(tmp)}
 
@@ -111,8 +119,9 @@ def _convert_code(obj: CodeType) -> dict:
 
 def _get_globals(func: FunctionType) -> dict:
     tmp = {}
+    clas = func.__qualname__.rsplit(".", 1)[0]
     for var in func.__code__.co_names:
-        if var in func.__globals__.keys() and var != func.__name__:
+        if var in func.__globals__.keys() and var != func.__name__ and var != clas:
             tmp[var] = func.__globals__[var]
     return tmp
 
@@ -156,10 +165,13 @@ def _deconvert_dict(obj: dict):
     return tmp
 
 
-def _deconvert_func(obj: dict):
+def _deconvert_func(obj: dict, cls=None):
     func_dict = _deconvert_dict(obj)
     c: CodeType = _deconvert_code(func_dict["code"])
-    closure = tuple([CellType(val) for val in func_dict["closure"]])
+    if cls:
+        closure = (CellType(cls),)
+    else:
+        closure = tuple([CellType(val) for val in func_dict["closure"]])
     if func_dict["argdefs"] is None:
         defs = ()
     else:
@@ -182,6 +194,19 @@ def _deconvert_func(obj: dict):
 
 
 def _deconvert_class(obj: dict):
+
+    if obj["bases"] and obj["bases"][0] == 'type':
+        meta = type(obj["name"], (type,), {})
+        for key, val in obj["attr"].items():
+            if key == "__module__" or key == "__doc__":
+                setattr(meta, f"{key}", deconvert(val))
+            else:
+                while key != "function":
+                    key, val = list(val.items())[0]
+                deconverted_func = _deconvert_func(val, meta)
+                setattr(meta, f"{deconverted_func.__name__}", deconverted_func)
+        return meta
+
     class_dict = _deconvert_dict(obj)
     if class_dict["bases"]:
         bases = tuple(class_dict["bases"])
