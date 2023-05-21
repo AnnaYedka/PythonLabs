@@ -1,16 +1,16 @@
 import math
 
-#from lab3.Converter import convert, deconvert
+from lab3.Converter import convert, deconvert
 
-# from lab3.JSONSerializer import JSONSerializer
+# from lab3.serializer.JSONSerializer import JSONSerializer
 # ser = JSONSerializer()
 # convert = ser.dumps
 # deconvert = ser.loads
 
-from lab3.XMLSerializer import XMLSerializer
-ser = XMLSerializer()
-convert = ser.dumps
-deconvert = ser.loads
+# from lab3.serializer.XMLSerializer import XMLSerializer
+# ser = XMLSerializer()
+# convert = ser.dumps
+# deconvert = ser.loads
 
 def simple_func(name):
     return "hello " + name
@@ -101,3 +101,8 @@ def with_builtin(s):
 
 def test_builtins():
     assert deconvert(convert(with_builtin))("hello") == with_builtin("hello")
+
+def test_generator():
+    a = (i ** 2 for i in range(1, 5))
+    b = deconvert(convert(a))
+    assert [1, 4, 9, 16] == [x for x in b]

@@ -1,13 +1,14 @@
-#from lab3.Converter import convert, deconvert
-# from lab3.JSONSerializer import JSONSerializer
+from lab3.Converter import convert, deconvert
+
+# from lab3.serializer.JSONSerializer import JSONSerializer
 # ser = JSONSerializer()
 # convert = ser.dumps
 # deconvert = ser.loads
 
-from lab3.XMLSerializer import XMLSerializer
-ser = XMLSerializer()
-convert = ser.dumps
-deconvert = ser.loads
+# from lab3.serializer.XMLSerializer import XMLSerializer
+# ser = XMLSerializer()
+# convert = ser.dumps
+# deconvert = ser.loads
 
 def test_int():
     val = 12

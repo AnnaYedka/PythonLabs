@@ -1,12 +1,12 @@
 from lab3.Converter import convert, deconvert
 
 
-# from lab3.JSONSerializer import JSONSerializer
+# from lab3.serializer.JSONSerializer import JSONSerializer
 # ser = JSONSerializer()
 # convert = ser.dumps
 # deconvert = ser.loads
 
-# from lab3.XMLSerializer import XMLSerializer
+# from lab3.serializer.XMLSerializer import XMLSerializer
 # ser = XMLSerializer()
 # convert = ser.dumps
 # deconvert = ser.loads
@@ -118,3 +118,20 @@ class ClassWithProperty:
 def test_property():
     rebuild = deconvert(convert(ClassWithProperty()))
     assert rebuild.test_prop == ClassWithProperty().test_prop
+
+
+
+def test_metaclass1():
+    class MyType(type):
+        def __new__(cls, name, bases, dct):
+            x = super().__new__(cls, name, bases, dct)
+            x.attr = 100
+            return x
+
+    T = deconvert(convert(MyType))
+
+    class X(metaclass=T):
+        pass
+
+    a = X()
+    assert a.attr == 100
