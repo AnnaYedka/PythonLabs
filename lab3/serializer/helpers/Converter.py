@@ -1,9 +1,9 @@
 import builtins
 import collections.abc
 import inspect
-
-from lab3.consts import PRIMITIVE_TYPES, ITERABLE_TYPES, NOT_SERIALIZABLE, NOT_SERIALIZABLE_TYPES
 from types import FunctionType, CodeType, ModuleType, MethodType, CellType, BuiltinMethodType, BuiltinFunctionType
+
+from .consts import PRIMITIVE_TYPES, ITERABLE_TYPES, NOT_SERIALIZABLE, NOT_SERIALIZABLE_TYPES
 
 
 def convert(obj):

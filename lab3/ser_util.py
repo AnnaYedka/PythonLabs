@@ -1,6 +1,6 @@
 import argparse
 
-from lab3.serializer.serializer import Serializer
+from serializer.serializer import Serializer
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="JSON&XMLserialiser")

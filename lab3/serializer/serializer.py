@@ -1,5 +1,5 @@
-from lab3.serializer.JSONSerializer import JSONSerializer
-from lab3.serializer.XMLSerializer import XMLSerializer
+from .JSONSerializer import JSONSerializer
+from .XMLSerializer import XMLSerializer
 
 
 class Serializer:

@@ -1,4 +1,4 @@
-from lab3.Converter import convert, deconvert
+from lab3.serializer.helpers.Converter import convert, deconvert
 
 
 # from lab3.serializer.JSONSerializer import JSONSerializer

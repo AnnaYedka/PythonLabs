@@ -1,9 +1,10 @@
-from lab3.consts import PRIMITIVE_TYPES, ITERABLE_TYPES
-from lab3.Converter import convert, deconvert
 import re
 
+from .helpers.Converter import convert, deconvert
+from .helpers.consts import PRIMITIVE_TYPES, ITERABLE_TYPES
 
-class XMLSerializer():
+
+class XMLSerializer:
     def dump(self, obj, fp):
         with open(fp, "w") as file:
             file.write(self.dumps(obj))
